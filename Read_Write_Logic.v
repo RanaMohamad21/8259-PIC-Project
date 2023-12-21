@@ -20,14 +20,11 @@ module Read_Write_Logic(
         end
     end
 
-    always @(posedge chip_select or posedge reset) begin
-        if (reset) begin
-            count <= 2'b00;
-            read_flag <= 1'b0;
-            write_flag <= 1'b0;
-        end else if (~chip_select) begin
+    always @( chip_select ) begin
+       
+         if (~chip_select) begin
             // Check for read operation
-            if (read_enable) begin
+            if ( ~ read_enable) begin
                 read_flag <= 1'b1;
             end
             // Check for write operation
@@ -39,6 +36,11 @@ module Read_Write_Logic(
                 end else begin
                     count <= count + 1;
                 end
+            end
+            else begin 
+                 // To avoid read and write operations hapenning simultaniously
+                read_flag <= 1'b0;
+                write_flag <=1'b0;
             end
         end
     end
