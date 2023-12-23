@@ -1,12 +1,11 @@
 module Priority_Resolver
-  (input wire        INTA,       //Interrupt acknowledge signal (active low)
-   input wire [7:0]  IRQ_status, // Interrupt requests from IRR
+  (input wire [7:0]  IRQ_status, // Interrupt requests from IRR
    input wire [7:0]  IS_status,   //bits from ISR
    input wire [7:0]  IR_mask,    //Interrupt mask from OCW1
    input wire        Rotating_priority ,  //1 for rotating and 0 for fully nested
    input wire [7:0]  last_serviced,       //the last serviced priority in ISR
-   output reg [7:0] Priority   // Selected priority given to ISR
-   
+   output reg [7:0] Priority,  // Selected priority given to ISR
+   output reg [2:0] PriorityID  //Selected Priority given to cascade
   );
   //declare useful variables
   wire [7:0] masked_IRQ;
@@ -68,7 +67,7 @@ module Priority_Resolver
    
         
       
-          if (INTA == 1'b0)   Priority = priority_reg & priority_mask;  //someting is wrong here
+            Priority = priority_reg & priority_mask;  
 
     end else begin
     //Fully nested Mode
@@ -83,11 +82,21 @@ module Priority_Resolver
           else if (IRQ_status[7] == 1'b1)    priority_reg = masked_IRQ & 8'b10000000;
           else                               priority_reg = masked_IRQ & 8'b00000000;
             
-          if (INTA == 1'b0)  Priority = priority_reg & priority_mask;
-       //should I only output the priority if I receive interrupt acknowldge?  
+          Priority = priority_reg & priority_mask;
+        
             
         end
-      
+        
+		//convert selected priority into an ID for use in cascade
+            if      (Priority[0] == 1'b1) PriorityID = 3'b000;
+            else if (Priority[1] == 1'b1) PriorityID = 3'b001;
+            else if (Priority[2] == 1'b1) PriorityID = 3'b010;
+            else if (Priority[3] == 1'b1) PriorityID = 3'b011;
+            else if (Priority[4] == 1'b1) PriorityID = 3'b100;
+            else if (Priority[5] == 1'b1) PriorityID = 3'b101;
+            else if (Priority[6] == 1'b1) PriorityID = 3'b110;
+            else if (Priority[7] == 1'b1) PriorityID = 3'b111;
+            else                          PriorityID = 3'b111;
       
   end
 endmodule
