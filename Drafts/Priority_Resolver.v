@@ -1,14 +1,14 @@
 module Priority_Resolver
   (input wire [7:0]  IRQ_status, // Interrupt requests from IRR
    input wire [7:0]  IS_status,   //bits from ISR
-   input wire [7:0]  IR_mask,    //Interrupt mask from OCW1
+   input wire [7:0]  IR_mask,    //Interrupt mask from OCW1 (from control)
    input wire        Rotating_priority ,  //1 for rotating and 0 for fully nested
    input wire [2:0]  last_serviced,       //the last serviced priority in ISR
-   output reg [2:0] PriorityID,  //Selected Priority given to cascade and ISR
+   output reg [2:0] PriorityID,  //Selected Priority given to cascade and ISR and control
    output reg       INTFLAG      //interrupt flag given to control
   );
   //declare useful variables
-  wire [7:0] masked_IRQ;
+  wire [7:0] masked_IRQ;    // to to take into account interrupt mask that might come from control module
   assign masked_IRQ = IRQ_status & ~IR_mask;
   reg [7:0] priority_reg;  // Register to store selected priority
   reg [7:0] rotated_priority;            //Register to store rotated priority
@@ -29,7 +29,7 @@ module Priority_Resolver
     //Rotating Priority mode
     if (Rotating_priority == 1'b1) begin 
           // Priority rotation logic
-          case (last_serviced) // how to know what was the last priority that was serviced? (assume its an input for now)
+          case (last_serviced)
             3'b000:  rotated_priority = { masked_IRQ[0],   masked_IRQ[7:1] };
             3'b001:  rotated_priority = { masked_IRQ[1:0], masked_IRQ[7:2] };
             3'b010:  rotated_priority = { masked_IRQ[2:0], masked_IRQ[7:3] };
