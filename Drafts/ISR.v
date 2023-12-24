@@ -22,7 +22,7 @@ module ISR (
 
   reg [7:0] next_inService_reg = 8'b00000000;
 
-  always @(posedge AEOI or posedge specific_eoi_flag) begin
+  always @(posedge AEOI) begin
     if (AEOI) begin
       eoi_next_state <= ~eoi_current_state;
     end else begin
@@ -39,15 +39,15 @@ module ISR (
       if (~ack1) begin
         // First ack pulse
         next_inService_reg[highest_priority_idx] <= 1'b1;
-      end else if (~AEOI && ~specific_eoi_flag) begin
+      end if (~AEOI && ~specific_eoi_flag) begin
         // Normal EOI non-specific
         next_inService_reg[highest_priority_idx] <= 1'b0;
         last_serviced_idx <= highest_priority_idx;
-      end else if (AEOI && ~ack2) begin
+      end if (AEOI && ~ack2) begin
         // Automatic EOI
         next_inService_reg[highest_priority_idx] <= 1'b0;
         last_serviced_idx <= highest_priority_idx;
-      end else if (~AEOI && specific_eoi_flag) begin
+      end if (~AEOI && specific_eoi_flag) begin
         // Specific EOI
         if (specific_irq < 8'b1000) begin
           next_inService_reg[specific_irq] <= 1'b0;
@@ -58,16 +58,16 @@ module ISR (
       if (~ack1) begin
         // First ack pulse
         next_inService_reg[highest_priority_idx] <= 1'b1;
-      end else if (AEOI && ~ack2) begin
+      end if (AEOI && ~ack2) begin
         // Automatic EOI
         next_inService_reg[highest_priority_idx] <= 1'b0;
         last_serviced_idx <= highest_priority_idx;
-      end else if (SP) begin // Master
+      end if (SP) begin // Master
         if (eoi_current_state == first_eoi && ~AEOI && ~specific_eoi_flag) begin
           // Normal EOI non-specific
           next_inService_reg[highest_priority_idx] <= 1'b0;
           last_serviced_idx <= highest_priority_idx;
-        end else if (eoi_current_state == first_eoi && ~AEOI && specific_eoi_flag) begin
+        end if (eoi_current_state == first_eoi && ~AEOI && specific_eoi_flag) begin
           // Specific EOI
           if (specific_irq < 8'b1000) begin
             next_inService_reg[specific_irq] <= 1'b0;
@@ -79,7 +79,7 @@ module ISR (
           // Normal EOI non-specific
           next_inService_reg[highest_priority_idx] <= 1'b0;
           last_serviced_idx <= highest_priority_idx;
-        end else if (eoi_current_state == second_eoi && ~AEOI && specific_eoi_flag) begin
+        end  if (eoi_current_state == second_eoi && ~AEOI && specific_eoi_flag) begin
           // Specific EOI
           if (specific_irq < 8'b1000) begin
             next_inService_reg[specific_irq] <= 1'b0;
