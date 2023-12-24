@@ -34,7 +34,7 @@ module ISR (
     end
   end
 
-  always @(posedge ack1 or posedge ack2 or posedge AEOI or posedge specific_eoi_flag or posedge highest_priority_idx or posedge SP) begin
+  always @(negedge ack1 or negedge ack2 or posedge AEOI or posedge specific_eoi_flag or posedge highest_priority_idx or posedge SP) begin
     if (SNGL) begin // Non-cascading mode
       if (~ack1) begin
         // First ack pulse
