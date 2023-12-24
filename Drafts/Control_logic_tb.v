@@ -7,13 +7,13 @@ module Control_logic_tb;
 
   // Signals
   reg clk, WD, RD, A0, INTA;
-  reg [7:0] IRR, ISR;
+  reg [7:0] IRR,ISR;
   reg[2:0] highest_priority_ISR;
   wire[7:0] data_bus;
-  wire INT, ICW1_LTIM, ICW1_ADI, ICW1_SNGL, ICW1_IC4, ICW4_SFNM, ICW4_BUF, ICW4_M_OR_S, ICW4_AEOI, ICW4_uPM;
+  wire INT, ICW1_LTIM, ICW1_SNGL, ICW4_M_OR_S, ICW4_AEOI, ICW4_uPM;
   wire [7:0] vector_address, ICW3, ICW2, OCW1;
   wire [2:0] reset_by_EOI;
-  wire  auto_rotate_status, begin_to_set_ISR, send_ISR_to_data_bus;
+  wire  auto_rotate_status, begin_to_set_ISR, send_ISR_to_data_bus,specific_eoi_status;
   wire [1:0] reading_status;
   reg [7:0]data_bus_container;
   // Instantiate the Control_logic module
@@ -21,22 +21,16 @@ module Control_logic_tb;
     .WD(WD),
     .RD(RD),
     .A0(A0),
-    .IRR(IRR),
     .ISR(ISR),
+    .IRR(IRR),
     .INTA(INTA),
     .INT(INT),
+    .ICW3(ICW3),
+    .specific_eoi_status(specific_eoi_status),
     .ICW1_LTIM(ICW1_LTIM),
-    .ICW1_ADI(ICW1_ADI),
     .ICW1_SNGL(ICW1_SNGL),
-    .ICW1_IC4(ICW1_IC4),
-    .ICW4_SFNM(ICW4_SFNM),
-    .ICW4_BUF(ICW4_BUF),
     .ICW4_M_OR_S(ICW4_M_OR_S),
     .ICW4_AEOI(ICW4_AEOI),
-    .ICW4_uPM(ICW4_uPM),
-    .vector_address(vector_address),
-    .ICW3(ICW3),
-    .ICW2(ICW2),
     .data_bus(data_bus),
     .highest_priority_ISR(highest_priority_ISR), // Provide a default value for highest_priority_ISR
     .reset_by_EOI(reset_by_EOI),
@@ -110,15 +104,20 @@ module Control_logic_tb;
      #10 INTA = 0;
      #100 INTA = 1;
    
-    #10 RD= 1'b0;
+    #10 RD = 1'b0;
     #10 RD = 1'b1;
+    //OCW1
+    #10 WD = 1'b0;
+        A0 = 1'b1;
+        data_bus_container  = 8'b10101010;
+        #100 WD = 1'b1;
 
 
 
     #100 $stop; // Stop simulation after some time
   end
  
-  assign data_bus = (RD==1'b0)?vector_address:(WD==1'b0)? data_bus_container:8'bzzzzzzzz;
+  assign data_bus = (WD==1'b0)? data_bus_container:8'bzzzzzzzz;
   // Display outputs
   always @(posedge clk) begin
     $display("Time=%0t: INT=%b, vector_address=%h, OCW1=%h", $time, INT, vector_address, OCW1);

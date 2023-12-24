@@ -1,30 +1,23 @@
 module Control_logic(
   input WD,
   input RD,
- 
   input A0,
   input [7:0]IRR,
   input [7:0]ISR,
   input INTA,
   output reg INT,
+  output reg [7:0]ICW3,
   output reg ICW1_LTIM, //LTM 1 for level triggered and 0 for edge
-  output reg ICW1_ADI, //1->4-bit interval,0->b-bit interval 
   output reg ICW1_SNGL, //1->for single controller, 0 for multiple,so ICW3 will be issued
-  output reg ICW1_IC4, //1-> ICW4 needed 0-> not needed
-  output reg ICW4_SFNM,// 1->special fully nested mode is on
-  output reg ICW4_BUF, // enable buffered mode
   output reg ICW4_M_OR_S, //master or slave, BUF should be set first
   output reg ICW4_AEOI, //1->auto EOI 
-  output reg ICW4_uPM, // 1-> 8086 Mode
-  output reg [7:0] vector_address, //vector address will be sent on the data bus
-  output reg [7:0]ICW3, //ICW3 register
-  output reg [7:0] ICW2, //ICW2 register
   inout wire [7:0]data_bus, //the  data bus buffer(output during reading, input during writing)
   input wire [2:0] highest_priority_ISR, //will be determined from the priority resolver.
   output reg [2:0] reset_by_EOI, //store the ID of the ISR bit that needs to be reset by the ISR.
   output reg [7:0]OCW1, //interrupt mask register
   output reg [1:0]reading_status, //determine which register needed to be read(IRR or ISR))
   output reg auto_rotate_status, //auto rotate mode
+  output reg specific_eoi_status,
   output reg begin_to_set_ISR, //first ACK
   output reg send_ISR_to_data_bus); //second ACK
   parameter CONFIG_ICW1 = 3'b000;
@@ -40,21 +33,21 @@ module Control_logic(
   parameter FIRST_ACK  = 2'b01;
   parameter SECOND_ACK = 2'b10;
   reg [7:0]data_bus_container = 8'b00000000;
-   
-   
+  reg ICW1_IC4; //1-> ICW4 needed 0-> not needed
+  reg [7:0] vector_address; //vector address will be sent on the data bus
+  reg [7:0] ICW2; //ICW2 register
+
   reg[2:0] current_ICW_state  = CONFIG_ICW1;
   reg[2:0] next_ICW_state;
+ 
+
   initial
   begin
     ICW1_LTIM <= 1'b0;
-    ICW1_ADI <= 1'b0;
     ICW1_SNGL <= 1'b1;
     ICW1_IC4 <= 1'b0;
-    ICW4_SFNM <= 1'b0;
-    ICW4_BUF <= 1'b0;
     ICW4_M_OR_S <= 1'b1;
     ICW4_AEOI <= 1'b0;
-    ICW4_uPM <= 1'b1;
     vector_address <= 8'b00000000;
    ICW3 <= 8'b00000000;
      ICW2 <= 8'b00000000;
@@ -104,13 +97,13 @@ module Control_logic(
    reg [1:0]state_of_ctrl_logic =  CTRL_INITIAL_STATE;
    reg [1:0]next_state_of_ctrl_logic;
 
-always @(*)
+always @(state_of_ctrl_logic)
 begin
      begin_to_set_ISR <= (state_of_ctrl_logic==FIRST_ACK);
      send_ISR_to_data_bus <= (state_of_ctrl_logic==SECOND_ACK); 
 end
  //FSM for the ctrl logic.
-   always @(INTA,current_ICW_state)
+   always @(INTA)
 begin
   if (ready_to_process_interrupts)
   begin
@@ -162,7 +155,6 @@ end
        begin
           ICW1_IC4 =data_bus[0];
           ICW1_SNGL =data_bus[1];
-          ICW1_ADI =data_bus[2];
           ICW1_LTIM =data_bus[3];
           next_ICW_state = CONFIG_ICW2;
        end
@@ -170,7 +162,6 @@ end
        begin
        ICW1_IC4= 1'b0;
        ICW1_SNGL =1'b1;
-       ICW1_ADI =1'b0;
        ICW1_LTIM =1'b0;
        next_ICW_state = CONFIG_ICW1;
        end
@@ -223,18 +214,18 @@ end
       begin
           if(ready_to_config_ICW4)
             begin
-              ICW4_uPM = data_bus[0];
+             
               ICW4_AEOI = data_bus[1];
               ICW4_M_OR_S = data_bus[2];
-              ICW4_BUF = data_bus[3];
+             
           next_ICW_state = ALL_ICW_CONFIG_DONE;
           end
           else
           begin
-            ICW4_uPM<= 1'b0;
+            
               ICW4_AEOI<= 1'b0;
               ICW4_M_OR_S<= 1'b0;
-              ICW4_BUF<= 1'b0;
+             
           next_ICW_state <=CONFIG_ICW4;
           end
       end
@@ -249,17 +240,16 @@ end
  
 always@(next_ICW_state)
 begin
-current_ICW_state <= next_ICW_state;
+current_ICW_state = next_ICW_state;
 end
 
 
 //determine masked or unmasked interrupts.
 always@(WD)
 begin
-if(ready_to_config_OCW1 ==1'b1 && WD==1'b0)
+if(ready_to_config_OCW1 == 1'b1 && WD == 1'b0)
   OCW1[7:0] <= data_bus[7:0];
-else
-  OCW1[7:0] <= 8'b00000000;
+
 end
 /* determines which IS to be reset
 /* for specific EOI we take the ID we act upon from the OCW2 register
@@ -270,13 +260,18 @@ if(ready_to_config_OCW2 == 1'b1 && WD==1'b0)
   begin
   case(data_bus[6:5])
   SPECIFIC_EOI:
+  begin
      reset_by_EOI = data_bus[2:0];
+     specific_eoi_status = 1'b1;
+
+  end
   NON_SPECIFIC_EOI:
+  begin
      reset_by_EOI = highest_priority_ISR; //taken from the priority resolver
+     specific_eoi_status = 1'b1;
+  end
      endcase
      end
-else
-  OCW1[7:0] <= 8'b00000000;
 end
 
 //auto rotate
@@ -329,7 +324,7 @@ begin
 
   if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
   begin
-   vector_address[2:0] = highest_priority_ISR; //bad ID
+  vector_address[2:0]=highest_priority_ISR;
    data_bus_container = vector_address;
    send_ISR_to_data_bus = 1'b0;
 
