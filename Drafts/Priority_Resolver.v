@@ -1,17 +1,16 @@
 module Priority_Resolver
-  (input wire        INTA,       //Interrupt acknowledge signal (active low)
-   input wire [7:0]  IRQ_status, // Interrupt requests from IRR
+  (input wire [7:0]  IRQ_status, // Interrupt requests from IRR
    input wire [7:0]  IS_status,   //bits from ISR
-   input wire [7:0]  IR_mask,    //Interrupt mask from OCW1
+   input wire [7:0]  IR_mask,    //Interrupt mask from OCW1 (from control)
    input wire        Rotating_priority ,  //1 for rotating and 0 for fully nested
-   input wire [7:0]  last_serviced,       //the last serviced priority in ISR
-   output reg [7:0] Priority   // Selected priority given to ISR
-   
+   input wire [2:0]  last_serviced,       //the last serviced priority in ISR
+   output reg [2:0] PriorityID,  //Selected Priority given to cascade and ISR and control
+   output reg       INTFLAG      //interrupt flag given to control
   );
   //declare useful variables
-  wire [7:0] masked_IRQ;
+  wire [7:0] masked_IRQ;    // to to take into account interrupt mask that might come from control module
   assign masked_IRQ = IRQ_status & ~IR_mask;
-  reg [7:0] priority_reg = 8'b00000000;  // Register to store selected priority
+  reg [7:0] priority_reg;  // Register to store selected priority
   reg [7:0] rotated_priority;            //Register to store rotated priority
   reg [7:0] priority_mask;  // to take into account bits that are already set in ISR
       always@* begin
@@ -30,15 +29,15 @@ module Priority_Resolver
     //Rotating Priority mode
     if (Rotating_priority == 1'b1) begin 
           // Priority rotation logic
-          case (last_serviced) // how to know what was the last priority that was serviced? (assume its an input for now)
-            8'b00000001:  rotated_priority = { masked_IRQ[0],   masked_IRQ[7:1] };
-            8'b00000010:  rotated_priority = { masked_IRQ[1:0], masked_IRQ[7:2] };
-            8'b00000100:  rotated_priority = { masked_IRQ[2:0], masked_IRQ[7:3] };
-            8'b00001000:  rotated_priority = { masked_IRQ[3:0], masked_IRQ[7:4] };
-            8'b00010000:  rotated_priority = { masked_IRQ[4:0], masked_IRQ[7:5] };
-            8'b00100000:  rotated_priority = { masked_IRQ[5:0], masked_IRQ[7:6] };
-            8'b01000000:  rotated_priority = { masked_IRQ[6:0], masked_IRQ[7]   };
-            8'b10000000:  rotated_priority = masked_IRQ;    //if last priority serviced was also the lowest priority
+          case (last_serviced)
+            3'b000:  rotated_priority = { masked_IRQ[0],   masked_IRQ[7:1] };
+            3'b001:  rotated_priority = { masked_IRQ[1:0], masked_IRQ[7:2] };
+            3'b010:  rotated_priority = { masked_IRQ[2:0], masked_IRQ[7:3] };
+            3'b011:  rotated_priority = { masked_IRQ[3:0], masked_IRQ[7:4] };
+            3'b100:  rotated_priority = { masked_IRQ[4:0], masked_IRQ[7:5] };
+            3'b101:  rotated_priority = { masked_IRQ[5:0], masked_IRQ[7:6] };
+            3'b110:  rotated_priority = { masked_IRQ[6:0], masked_IRQ[7]   };
+            3'b111:  rotated_priority = masked_IRQ;    //if last priority serviced was also the lowest priority
             default: rotated_priority = masked_IRQ;         //by default priority is normal (not rotated)
           endcase
         
@@ -55,21 +54,26 @@ module Priority_Resolver
             
          //we need to return to normal unrotated output
          case (last_serviced)
-            8'b00000001:  priority_reg = { priority_reg[6:0], priority_reg[7] };
-            8'b00000010:  priority_reg = { priority_reg[5:0], priority_reg[7:6] };
-            8'b00000100:  priority_reg = { priority_reg[4:0], priority_reg[7:5] };
-            8'b00001000:  priority_reg = { priority_reg[3:0], priority_reg[7:4] };
-            8'b00010000:  priority_reg = { priority_reg[2:0], priority_reg[7:3] };
-            8'b00100000:  priority_reg = { priority_reg[1:0], priority_reg[7:2] };
-            8'b01000000:  priority_reg = { priority_reg[0], priority_reg[7:1]   };
-            8'b10000000:  priority_reg = priority_reg;    //if last priority serviced was also the lowest priority
+            3'b000:  priority_reg = { priority_reg[6:0], priority_reg[7] };
+            3'b001:  priority_reg = { priority_reg[5:0], priority_reg[7:6] };
+            3'b010:  priority_reg = { priority_reg[4:0], priority_reg[7:5] };
+            3'b011:  priority_reg = { priority_reg[3:0], priority_reg[7:4] };
+            3'b100:  priority_reg = { priority_reg[2:0], priority_reg[7:3] };
+            3'b101:  priority_reg = { priority_reg[1:0], priority_reg[7:2] };
+            3'b110:  priority_reg = { priority_reg[0], priority_reg[7:1]   };
+            3'b111:  priority_reg = priority_reg;    //if last priority serviced was also the lowest priority
             default: priority_reg = priority_reg;         //by default priority is normal (not rotated)
           endcase
    
         
       
-          if (INTA == 1'b0)   Priority = priority_reg & priority_mask;  //someting is wrong here
-
+            priority_reg = priority_reg & priority_mask;  
+			
+			if (|priority_reg == 1'b1)   //flag will fire only when an interrupt line wins
+			   INTFLAG = 1'b1;
+			else   
+			   INTFLAG = 1'b0;
+			   
     end else begin
     //Fully nested Mode
         // Priority resolution logic
@@ -83,11 +87,26 @@ module Priority_Resolver
           else if (IRQ_status[7] == 1'b1)    priority_reg = masked_IRQ & 8'b10000000;
           else                               priority_reg = masked_IRQ & 8'b00000000;
             
-          if (INTA == 1'b0)  Priority = priority_reg & priority_mask;
-       //should I only output the priority if I receive interrupt acknowldge?  
+          priority_reg = priority_reg & priority_mask;
+		  
+		  if (|priority_reg == 1'b1)   //flag will fire only when an interrupt line wins
+			   INTFLAG = 1'b1;
+		  else   
+			   INTFLAG = 1'b0;
+        
             
         end
-      
+        
+		//convert selected priority into an ID for use in cascade and ISR
+            if      (priority_reg[0] == 1'b1) PriorityID = 3'b000;
+            else if (priority_reg[1] == 1'b1) PriorityID = 3'b001;
+            else if (priority_reg[2] == 1'b1) PriorityID = 3'b010;
+            else if (priority_reg[3] == 1'b1) PriorityID = 3'b011;
+            else if (priority_reg[4] == 1'b1) PriorityID = 3'b100;
+            else if (priority_reg[5] == 1'b1) PriorityID = 3'b101;
+            else if (priority_reg[6] == 1'b1) PriorityID = 3'b110;
+            else if (priority_reg[7] == 1'b1) PriorityID = 3'b111;
+            else begin end
       
   end
 endmodule
