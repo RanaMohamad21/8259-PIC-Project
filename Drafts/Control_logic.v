@@ -20,7 +20,8 @@ module Control_logic(
   output reg begin_to_set_ISR, //first ACK
   output reg send_ISR_to_data_bus,
   output reg [2:0]slave_id,
-  input wire vecFlag); //second ACK
+  input wire vecFlag,
+  input wire INT_Flag); //second ACK
   parameter CONFIG_ICW1 = 3'b000;
   parameter CONFIG_ICW2 = 3'b001;
   parameter CONFIG_ICW3 = 3'b010;
@@ -94,7 +95,7 @@ module Control_logic(
    end
    
  
-   wire ready_to_process_interrupts = (current_ICW_state == ALL_ICW_CONFIG_DONE);
+   wire ready_to_process_interrupts = (current_ICW_state == ALL_ICW_CONFIG_DONE)&&(INT_Flag==1'b1);
 
    
    reg [1:0]state_of_ctrl_logic =  CTRL_INITIAL_STATE;
@@ -362,6 +363,11 @@ end
 
 
 assign data_bus = (RD==1'b0)?data_bus_container:(8'bzzzzzzzz);
+
+always@(*)
+begin
+INT<=INT_Flag;
+end
 
 
 
