@@ -2,7 +2,7 @@ module IRQs (
   input wire [7:0] irq_lines,
   input wire trigger, // D3 -> ICW1 1 -> LEVEL TRIGGERED MODE 0 -> EDGE TRIGGERED MODE 1
   input wire inta,
-  input wire [7:0] priority,
+  input wire [2:0] highest_priority_idx,
   output reg [7:0] irq_status
 );
   reg [7:0] edge_triggered_irqs;
@@ -35,15 +35,15 @@ module IRQs (
   end
 
   always @(negedge inta) begin  // Assuming INTA signal 'inta'
-    if (~inta) begin
+    if (inta) begin
       // Acknowledge the IRQ
       if (trigger == 0) begin
-        edge_triggered_irqs <= edge_triggered_irqs & ~priority;
-        irq_status <= irq_status & ~priority;
+        edge_triggered_irqs[highest_priority_idx] <= 0;
+        irq_status [highest_priority_idx] <= 0;
       end
       else begin
-        level_triggered_irqs <= level_triggered_irqs & ~priority;
-        irq_status <= irq_status & ~priority;
+        level_triggered_irqs [highest_priority_idx] <= 0;
+        irq_status [highest_priority_idx] <= 0;
       end
     end
   end
