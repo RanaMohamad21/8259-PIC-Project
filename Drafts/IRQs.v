@@ -7,25 +7,54 @@ module IRQs (
 );
   reg [7:0] edge_triggered_irqs;
   reg [7:0] level_triggered_irqs;
-  genvar i;
+ always @* begin
+    if (trigger == 0) begin
+      // Edge-Triggered IRQs
+      if (irq_lines[0] && ~edge_triggered_irqs[0])
+        edge_triggered_irqs[0] <= 1;
+      else if (~irq_lines[0])
+        edge_triggered_irqs[0] <= 0;
 
-  generate
-    for (i = 0; i < 8; i = i + 1) begin : INST
-      always @* begin
-        if (trigger == 0) begin
-          // Edge-Triggered IRQs
-          if (irq_lines[i] && ~edge_triggered_irqs[i])
-            edge_triggered_irqs[i] <= 1;
-          else if (~irq_lines[i])
-            edge_triggered_irqs[i] <= 0;
-        end
-        else begin
-          // Level-Triggered IRQs
-          level_triggered_irqs[i] <= irq_lines[i];
-        end
-      end
+      if (irq_lines[1] && ~edge_triggered_irqs[1])
+        edge_triggered_irqs[1] <= 1;
+      else if (~irq_lines[1])
+        edge_triggered_irqs[1] <= 0;
+
+      if (irq_lines[2] && ~edge_triggered_irqs[2])
+        edge_triggered_irqs[2] <= 1;
+      else if (~irq_lines[2])
+        edge_triggered_irqs[2] <= 0;
+
+      if (irq_lines[3] && ~edge_triggered_irqs[3])
+        edge_triggered_irqs[3] <= 1;
+      else if (~irq_lines[3])
+        edge_triggered_irqs[3] <= 0;
+        
+      if (irq_lines[4] && ~edge_triggered_irqs[4])
+        edge_triggered_irqs[4] <= 1;
+      else if (~irq_lines[4])
+        edge_triggered_irqs[4] <= 0;
+
+      if (irq_lines[5] && ~edge_triggered_irqs[5])
+        edge_triggered_irqs[5] <= 1;
+      else if (~irq_lines[5])
+        edge_triggered_irqs[5] <= 0;
+        
+      if (irq_lines[6] && ~edge_triggered_irqs[6])
+        edge_triggered_irqs[6] <= 1;
+      else if (~irq_lines[6])
+        edge_triggered_irqs[6] <= 0;
+
+      if (irq_lines[7] && ~edge_triggered_irqs[7])
+        edge_triggered_irqs[7] <= 1;
+      else if (~irq_lines[7])
+        edge_triggered_irqs[7] <= 0;
     end
-  endgenerate
+    else begin
+      // Level-Triggered IRQs
+      level_triggered_irqs <= irq_lines;
+    end
+  end
 
   always @* begin
     if (trigger == 0)
@@ -34,7 +63,7 @@ module IRQs (
       irq_status = level_triggered_irqs;
   end
 
-  always @(negedge inta) begin  // Assuming INTA signal 'inta'
+  always @(posedge inta) begin  // Assuming INTA signal 'inta'
     if (inta) begin
       // Acknowledge the IRQ
       if (trigger == 0) begin

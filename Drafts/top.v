@@ -51,7 +51,7 @@ Control_logic control_logic(.WD(write_flag),.RD(read_flag),.A0(A0),.IRR(IRQ_stat
   ISR isr(.AEOI(AEOI),.interrupts_in_service(interrupt_inservice),.last_serviced_idx(last_serviced),.specific_irq(EOI_specific_IRQ_index),.ack1(first_ack),.ack2(second_ack),.SP(slave_program),.SNGL(single_or_cascade),.specific_eoi_flag(specific_eoi_flag),.highest_priority_idx(PriorityID));
 
 
-IRQs irqs(.irq_lines(interrupt_requests),.irq_status(IRQ_status),.trigger(edge_level_trigger),.inta(INTA),.highest_priority_idx(PriorityID));
+IRQs irqs(.irq_lines(interrupt_requests),.irq_status(IRQ_status),.trigger(edge_level_trigger),.inta(first_ack),.highest_priority_idx(PriorityID));
 
 //INTFlag corresponds to What?
 Priority_Resolver priority_resolver(.IRQ_status(IRQ_status),.IS_status(interrupt_inservice),.IR_mask(IR_mask),.Rotating_priority(Rotating_priority),.last_serviced(last_serviced),.PriorityID(PriorityID),.INTFLAG(INT_Flag));
