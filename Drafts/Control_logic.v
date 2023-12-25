@@ -6,7 +6,6 @@ module Control_logic(
   input [7:0]ISR,
   input INTA,
   output reg INT,
-  output reg [7:0]ICW3,
   output reg ICW1_LTIM, //LTM 1 for level triggered and 0 for edge
   output reg ICW1_SNGL, //1->for single controller, 0 for multiple,so ICW3 will be issued
   output reg ICW4_AEOI, //1->auto EOI 
@@ -43,7 +42,7 @@ module Control_logic(
 
   reg[2:0] current_ICW_state  = CONFIG_ICW1;
   reg[2:0] next_ICW_state;
- 
+ reg [7:0]ICW3;
 
   initial
   begin
