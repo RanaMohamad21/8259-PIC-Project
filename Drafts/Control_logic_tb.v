@@ -100,19 +100,28 @@ module Control_logic_tb;
      #10 IRR = 8'b01100000;
      #10 highest_priority_ISR =3'b111;
      #10 INTA = 0;
-     #100 INTA = 1;
+     #10 INTA = 1;
      #10 INTA = 0;
-     #100 INTA = 1;
-   
+     #10 INTA = 1;
+   //send isr address
     #10 RD = 1'b0;
     #10 RD = 1'b1;
     //OCW1
     #10 WD = 1'b0;
         A0 = 1'b1;
         data_bus_container  = 8'b10101010;
-        #100 WD = 1'b1;
-
-
+        #10 WD = 1'b1;
+        //OCW2
+#10 WD = 1'b0;
+    A0 = 1'b0;
+    data_bus_container=8'b01100111;
+#10 WD =1'b1;
+     #10 WD=1'b0;
+     A0=1'b0;
+     data_bus_container = 8'b00001010;
+#10 WD =1'b1;
+#10 RD = 1'b0;
+#10 RD = 1'b1;
 
     #100 $stop; // Stop simulation after some time
   end

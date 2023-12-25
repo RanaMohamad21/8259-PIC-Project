@@ -299,7 +299,15 @@ begin
  if(ready_to_config_OCW3 ==1'b1 &&  WD==1'b0)
     begin
         reading_status[1:0]=data_bus[1:0];
-        if (reading_status == 2'b10 && RD==1'b0)
+    end
+else
+    begin
+     end  
+end
+
+always@(RD)
+begin
+if (reading_status == 2'b10 && RD==1'b0)
         begin
             data_bus_container = IRR;
         end 
@@ -307,15 +315,6 @@ begin
         begin
            data_bus_container = ISR;
         end
-        else  
-        begin
-         end
-    end
-else
-    begin 
-        reading_status[1:0]= 2'b00;
-     end
-    
 end
 
 
@@ -324,10 +323,12 @@ begin
 
   if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
   begin
-  vector_address[2:0]=highest_priority_ISR;
+  vector_address[2:0] = highest_priority_ISR;
    data_bus_container = vector_address;
    send_ISR_to_data_bus = 1'b0;
-
+  end
+  else
+  begin
   end
 end
 
@@ -338,7 +339,7 @@ assign data_bus = (RD==1'b0)?data_bus_container:(8'bzzzzzzzz);
 
 
 
-/*needed to be done: sending the vector address to the data bus*/
+
 
 endmodule
 
