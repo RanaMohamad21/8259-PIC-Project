@@ -9,7 +9,6 @@ module Control_logic(
   output reg [7:0]ICW3,
   output reg ICW1_LTIM, //LTM 1 for level triggered and 0 for edge
   output reg ICW1_SNGL, //1->for single controller, 0 for multiple,so ICW3 will be issued
-  output reg ICW4_M_OR_S, //master or slave, BUF should be set first
   output reg ICW4_AEOI, //1->auto EOI 
   inout wire [7:0]data_bus, //the  data bus buffer(output during reading, input during writing)
   input wire [2:0] highest_priority_ISR, //will be determined from the priority resolver.
@@ -19,7 +18,9 @@ module Control_logic(
   output reg auto_rotate_status, //auto rotate mode
   output reg specific_eoi_status,
   output reg begin_to_set_ISR, //first ACK
-  output reg send_ISR_to_data_bus); //second ACK
+  output reg send_ISR_to_data_bus,
+  output reg slave_id,
+  input wire vecFlag); //second ACK
   parameter CONFIG_ICW1 = 3'b000;
   parameter CONFIG_ICW2 = 3'b001;
   parameter CONFIG_ICW3 = 3'b010;
@@ -36,6 +37,8 @@ module Control_logic(
   reg ICW1_IC4; //1-> ICW4 needed 0-> not needed
   reg [7:0] vector_address; //vector address will be sent on the data bus
   reg [7:0] ICW2; //ICW2 register
+  reg ICW4_BUF;
+  reg ICW4_M_OR_S; //master or slave, BUF should be set first
 
   reg[2:0] current_ICW_state  = CONFIG_ICW1;
   reg[2:0] next_ICW_state;
@@ -118,6 +121,7 @@ begin
       end
       FIRST_ACK:
       begin
+
         if (negedge_INTA == 1'b1 )
           next_state_of_ctrl_logic <= SECOND_ACK;
         else
@@ -217,6 +221,7 @@ end
              
               ICW4_AEOI = data_bus[1];
               ICW4_M_OR_S = data_bus[2];
+              ICW4_BUF = data_bus[3];
              
           next_ICW_state = ALL_ICW_CONFIG_DONE;
           end
@@ -225,6 +230,7 @@ end
             
               ICW4_AEOI<= 1'b0;
               ICW4_M_OR_S<= 1'b0;
+              ICW4_BUF <=1'b0;
              
           next_ICW_state <=CONFIG_ICW4;
           end
@@ -318,9 +324,17 @@ if (reading_status == 2'b10 && RD==1'b0)
 end
 
 
-always@(RD)
+always@(RD,vecFlag)
 begin
-
+if(~ICW1_SNGL && ICW4_M_OR_S && ICW4_BUF && vecFlag )
+begin
+if(vecFlag==1'b1 && send_ISR_to_data_bus == 1'b1 && RD==1'b0)
+begin
+vector_address[2:0] = highest_priority_ISR;
+   data_bus_container = vector_address;
+   send_ISR_to_data_bus = 1'b0;
+end
+end
   if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
   begin
   vector_address[2:0] = highest_priority_ISR;
@@ -330,9 +344,21 @@ begin
   else
   begin
   end
+
+
 end
 
 
+always@(state_of_ctrl_logic)
+begin
+if(state_of_ctrl_logic==FIRST_ACK && posedge_INTA==1'b1 && ICW4_M_OR_S && ICW4_BUF && ~ICW1_SNGL)
+begin
+if( ICW3>>highest_priority_ISR & 1 ==1'b1)
+begin
+slave_id = highest_priority_ISR;
+end
+end
+end
 
 
 assign data_bus = (RD==1'b0)?data_bus_container:(8'bzzzzzzzz);

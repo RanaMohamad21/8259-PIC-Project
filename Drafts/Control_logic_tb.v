@@ -9,10 +9,11 @@ module Control_logic_tb;
   reg clk, WD, RD, A0, INTA;
   reg [7:0] IRR,ISR;
   reg[2:0] highest_priority_ISR;
+  reg vecFlag;
   wire[7:0] data_bus;
-  wire INT, ICW1_LTIM, ICW1_SNGL, ICW4_M_OR_S, ICW4_AEOI, ICW4_uPM;
+  wire INT, ICW1_LTIM, ICW1_SNGL, ICW4_AEOI, ICW4_uPM;
   wire [7:0] vector_address, ICW3, ICW2, OCW1;
-  wire [2:0] reset_by_EOI;
+  wire [2:0] reset_by_EOI,slave_id;
   wire  auto_rotate_status, begin_to_set_ISR, send_ISR_to_data_bus,specific_eoi_status;
   wire [1:0] reading_status;
   reg [7:0]data_bus_container;
@@ -29,7 +30,6 @@ module Control_logic_tb;
     .specific_eoi_status(specific_eoi_status),
     .ICW1_LTIM(ICW1_LTIM),
     .ICW1_SNGL(ICW1_SNGL),
-    .ICW4_M_OR_S(ICW4_M_OR_S),
     .ICW4_AEOI(ICW4_AEOI),
     .data_bus(data_bus),
     .highest_priority_ISR(highest_priority_ISR), // Provide a default value for highest_priority_ISR
@@ -38,7 +38,9 @@ module Control_logic_tb;
     .reading_status(reading_status),
     .auto_rotate_status(auto_rotate_status),
     .begin_to_set_ISR(begin_to_set_ISR),
-    .send_ISR_to_data_bus(send_ISR_to_data_bus)
+    .send_ISR_to_data_bus(send_ISR_to_data_bus),
+    .slave_id(slave_id),
+    .vecFlag(vecFlag)
   );
 
   // Clock generation
