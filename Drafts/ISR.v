@@ -37,14 +37,14 @@ module ISR (
 
   always @(negedge ack1 or negedge ack2 or posedge AEOI or posedge specific_eoi_flag or posedge highest_priority_idx or posedge SP) begin
     if (SNGL) begin // Non-cascading mode
-      if (~ack1) begin
+      if (ack1) begin
         // First ack pulse
         next_inService_reg[highest_priority_idx] <= 1'b1;
       end if (~AEOI && ~specific_eoi_flag) begin
         // Normal EOI non-specific
         next_inService_reg[highest_priority_idx] <= 1'b0;
         next_serviced_idx <= highest_priority_idx;
-      end if (AEOI && ~ack2) begin
+      end if (AEOI && ack2) begin
         // Automatic EOI
         next_inService_reg[highest_priority_idx] <= 1'b0;
         next_serviced_idx <= highest_priority_idx;
@@ -56,10 +56,10 @@ module ISR (
         end
       end
     end else begin // Cascading mode
-      if (~ack1) begin
+      if (ack1) begin
         // First ack pulse
         next_inService_reg[highest_priority_idx] <= 1'b1;
-      end if (AEOI && ~ack2) begin
+      end if (AEOI && ack2) begin
         // Automatic EOI
         next_inService_reg[highest_priority_idx] <= 1'b0;
         next_serviced_idx <= highest_priority_idx;
