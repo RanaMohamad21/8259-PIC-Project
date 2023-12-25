@@ -104,9 +104,10 @@ module Control_logic_tb;
      #10 INTA = 0;
      #10 INTA = 1;
      #10 INTA = 0;
+         vecFlag =1;
      #10 INTA = 1;
    //send isr address
-    #10 RD = 1'b0;
+     #10 RD = 1'b0;
     #10 RD = 1'b1;
     //OCW1
     #10 WD = 1'b0;

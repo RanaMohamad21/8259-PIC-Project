@@ -19,7 +19,7 @@ module Control_logic(
   output reg specific_eoi_status,
   output reg begin_to_set_ISR, //first ACK
   output reg send_ISR_to_data_bus,
-  output reg slave_id,
+  output reg [2:0]slave_id,
   input wire vecFlag); //second ACK
   parameter CONFIG_ICW1 = 3'b000;
   parameter CONFIG_ICW2 = 3'b001;
@@ -331,8 +331,8 @@ begin
 if(vecFlag==1'b1 && send_ISR_to_data_bus == 1'b1 && RD==1'b0)
 begin
 vector_address[2:0] = highest_priority_ISR;
-   data_bus_container = vector_address;
-   send_ISR_to_data_bus = 1'b0;
+data_bus_container = vector_address;
+send_ISR_to_data_bus = 1'b0;
 end
 end
   if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
@@ -353,9 +353,9 @@ always@(state_of_ctrl_logic)
 begin
 if(state_of_ctrl_logic==FIRST_ACK && posedge_INTA==1'b1 && ICW4_M_OR_S && ICW4_BUF && ~ICW1_SNGL)
 begin
-if( ICW3>>highest_priority_ISR & 1 ==1'b1)
+if( (ICW3>>$bits(highest_priority_ISR)) & 1)
 begin
-slave_id = highest_priority_ISR;
+slave_id= highest_priority_ISR[2:0];
 end
 end
 end
