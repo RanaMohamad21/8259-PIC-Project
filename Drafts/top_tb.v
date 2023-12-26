@@ -15,6 +15,9 @@ module top_tb;
  wire [2:0] PriorityID;
    wire first_ack;
   wire second_ack;
+   wire AEOI;
+   wire single_or_cascade;
+   wire Rotating_priority;
 
   // Instantiate the top module
   top uut (
@@ -35,7 +38,10 @@ module top_tb;
     .interrupt_requests(interrupt_requests),
     .INT(INT),
     .first_ack(first_ack),
-    .second_ack(second_ack)
+    .second_ack(second_ack),
+    .AEOI(AEOI),
+    .single_or_cascade(single_or_cascade),
+    .Rotating_priority(Rotating_priority)
   );
 
   assign data_Bus = ( write_flag==1'b0)? data_bus_container:8'bzzzzzzzz;
@@ -56,7 +62,7 @@ module top_tb;
     #10 write_flag = 1'b1;
     #10 write_flag = 1'b0;
      A0 =1'b0;
-    data_bus_container = 8'b00011010;
+    data_bus_container = 8'b00011011;
     #10 write_flag = 1'b1;
         chip_select = 1'b1;
         A0 = 1'b1;
@@ -148,3 +154,4 @@ module top_tb;
   end
 
 endmodule
+
