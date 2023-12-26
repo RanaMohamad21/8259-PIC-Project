@@ -18,7 +18,7 @@ module top_tb;
    wire AEOI;
    wire single_or_cascade;
    wire Rotating_priority;
-
+wire write_Enable;
   // Instantiate the top module
   top uut (
       .IRQ_status(IRQ_status),
@@ -41,10 +41,11 @@ module top_tb;
     .second_ack(second_ack),
     .AEOI(AEOI),
     .single_or_cascade(single_or_cascade),
-    .Rotating_priority(Rotating_priority)
+    .Rotating_priority(Rotating_priority),
+    .write_Enable(write_Enable)
   );
 
-  assign data_Bus = ( write_flag==1'b0)? data_bus_container:8'bzzzzzzzz;
+  assign data_Bus = ( write_Enable==1'b0)? data_bus_container:8'bzzzzzzzz;
 
   // Initial stimulus
   initial begin
