@@ -1,13 +1,14 @@
 module IRQs (
   input wire [7:0] irq_lines,
-  input wire trigger, // D3 -> ICW1 1 -> LEVEL TRIGGERED MODE 0 -> EDGE TRIGGERED MODE 1
+  input wire trigger,
   input wire inta,
   input wire [2:0] highest_priority_idx,
   output reg [7:0] irq_status
 );
-  reg [7:0] edge_triggered_irqs;
-  reg [7:0] level_triggered_irqs;
- always @* begin
+
+  reg [7:0] edge_triggered_irqs = 8'b00000000;
+  reg [7:0] level_triggered_irqs = 8'b00000000;
+  always @* begin
     if (trigger == 0) begin
       // Edge-Triggered IRQs
       if (irq_lines[0] && ~edge_triggered_irqs[0])
