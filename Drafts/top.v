@@ -36,7 +36,6 @@ module top(
  /**
     Read/Write + Control
 */
-wire reset;
 wire read_Enable;
 wire write_Enable;
 wire [2:0]EOI_specific_IRQ_index;
@@ -59,7 +58,7 @@ IRQs irqs(.irq_lines(interrupt_requests),.irq_status(IRQ_status),.trigger(edge_l
 Priority_Resolver priority_resolver(.IRQ_status(IRQ_status),.IS_status(interrupt_inservice),.IR_mask(IR_mask),.Rotating_priority(Rotating_priority),.last_serviced(last_serviced),.PriorityID(PriorityID),.INTFLAG(INT_Flag));
 
 Read_Write_Logic read_write(.read_enable(read_Enable),.write_enable(write_Enable),.read_flag(read_flag),
-.write_flag(write_flag),.chip_select(chip_select),.reset(reset));
+.write_flag(write_flag),.chip_select(chip_select));
 
 
 cascade cscd (.SP(slave_program),.SNGL(single_or_cascade),.slaveReg(slave_id),.pulse1(begin_to_set_ISR),.pulse2(send_ISR_to_data_bus),.intrID(PriorityID),.casc(cascade_lines),.vecFlag(vecFlag));
