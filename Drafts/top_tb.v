@@ -9,10 +9,12 @@ module top_tb;
   reg [7:0] interrupt_requests;
   wire INT;
   reg [7:0] data_bus_container ;
-  reg [7:0]  IRQ_status;
-   reg [7:0]interrupt_inservice;
-  reg [2:0]  last_serviced;
- reg [2:0] PriorityID;
+  wire [7:0]  IRQ_status;
+   wire [7:0]interrupt_inservice;
+ wire [2:0]  last_serviced;
+ wire [2:0] PriorityID;
+   wire first_ack;
+  wire second_ack;
 
   // Instantiate the top module
   top uut (
@@ -31,7 +33,9 @@ module top_tb;
     .slave_program(slave_program),
     .INTA(INTA),
     .interrupt_requests(interrupt_requests),
-    .INT(INT)
+    .INT(INT),
+    .first_ack(first_ack),
+    .second_ack(second_ack)
   );
 
   assign data_Bus = ( write_Enable==1'b0)? data_bus_container:8'bzzzzzzzz;
@@ -50,7 +54,7 @@ module top_tb;
        #10 chip_select = 1'b0;
      write_Enable = 1'b0;
         A0 =1'b0;
-    data_bus_container = 8'b00011010;
+    data_bus_container = 8'b00001010;
     #10 write_Enable = 1'b1;
         chip_select = 1'b1;
         A0 = 1'b1;
@@ -87,7 +91,16 @@ module top_tb;
         #10 INTA = 0;
         #10 INTA = 1;
     
-
+#10 interrupt_requests = 8'b11010000;
+        #10 INTA =0;
+        #10 INTA =1;
+        #10 INTA = 0;
+        #10 INTA = 1;
+#10 interrupt_requests = 8'b00010110;
+        #10 INTA =0;
+        #10 INTA =1;
+        #10 INTA = 0;
+        #10 INTA = 1;
     
 
 
@@ -121,3 +134,4 @@ module top_tb;
   end
 
 endmodule
+
