@@ -5,7 +5,7 @@ module top_tb;
   // Declare signals for connecting to the DUT (Design Under Test)
   wire [7:0] data_Bus;
   wire [2:0] cascade_lines;
-  reg read_Enable, write_Enable, A0, chip_select, slave_program, INTA;
+  reg read_flag, write_flag, A0, chip_select, slave_program, INTA;
   reg [7:0] interrupt_requests;
   wire INT;
   reg [7:0] data_bus_container ;
@@ -26,8 +26,8 @@ module top_tb;
   .PriorityID(PriorityID),
     .data_Bus(data_Bus),
     .cascade_lines(cascade_lines),
-    .read_Enable(read_Enable),
-    .write_Enable(write_Enable),
+    .read_flag(read_flag),
+    .write_flag(write_flag),
     .A0(A0),
     .chip_select(chip_select),
     .slave_program(slave_program),
@@ -38,53 +38,56 @@ module top_tb;
     .second_ack(second_ack)
   );
 
-  assign data_Bus = ( write_Enable==1'b0)? data_bus_container:8'bzzzzzzzz;
+  assign data_Bus = ( write_flag==1'b0)? data_bus_container:8'bzzzzzzzz;
 
   // Initial stimulus
   initial begin
     // Initialize inputs
     //ICW1
-    read_Enable = 1'b1;
-    write_Enable=1'b1;
+    read_flag = 1'b1;
+    write_flag=1'b1;
     INTA = 1'b1;
-    #10 
-        write_Enable = 1'b0;
-       
-       #10 write_Enable = 1'b1;
-       #10 chip_select = 1'b0;
-     write_Enable = 1'b0;
-        A0 =1'b0;
+    chip_select = 1'b1;
+    
+    #10 chip_select = 1'b0;
+    
+    
+    #10 write_flag = 1'b0;
+    #10 write_flag = 1'b1;
+
+     write_flag = 1'b0;
+     A0 =1'b0;
     data_bus_container = 8'b00001010;
-    #10 write_Enable = 1'b1;
+    #10 write_flag = 1'b1;
         chip_select = 1'b1;
         A0 = 1'b1;
     //ICW2
     #10 chip_select =1'b0;
         A0 = 1'b1;
       
-    #10 write_Enable = 1'b0;
+    #10 write_flag = 1'b0;
         data_bus_container = 8'b11111000;
-    #10 write_Enable = 1'b1;
+    #10 write_flag = 1'b1;
     //ICW3
     #10 chip_select =1'b0;
         A0 = 1'b1;
      
-    #10 write_Enable = 1'b0;
+    #10 write_flag = 1'b0;
         data_bus_container = 8'b00000000;
-    #10 write_Enable = 1'b1;
+    #10 write_flag = 1'b1;
     //ICW4
      #10 chip_select =1'b0;
         A0 = 1'b1;
-    #10 write_Enable = 1'b0;
+    #10 write_flag = 1'b0;
         data_bus_container = 8'b00001111;
-    #10 write_Enable = 1'b1;
+    #10 write_flag = 1'b1;
     //OCW2  
     
        #10 chip_select =1'b0;
         A0 = 1'b0;
-    #10 write_Enable = 1'b0;
+    #10 write_flag = 1'b0;
         data_bus_container = 8'b00000000;
-    #10 write_Enable = 1'b1;
+    #10 write_flag = 1'b1;
         interrupt_requests = 8'b00010000;
         #10 INTA =0;
         #10 INTA =1;
@@ -134,4 +137,3 @@ module top_tb;
   end
 
 endmodule
-
