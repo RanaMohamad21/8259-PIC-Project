@@ -1,56 +1,58 @@
 module Read_Write_Logic(
-    input read_enable,
-    input write_enable,
+    output reg read_enable,
+    output reg write_enable,
     input chip_select,
-    input reset, // Active high
-    output reg read_flag,
-    output reg write_flag
+    input read_flag,
+    input write_flag
 );
 
     reg [1:0] count = 2'b00;
+  initial begin
+    read_enable =1;
+    write_enable =1;
+  end
 
-    always @(posedge reset) begin
-        if (reset) begin
-            count <= 2'b00;
-            read_flag <= 1'b1;
-            write_flag <= 1'b1;
-        end
-    end
-
-
-  always @( chip_select , read_enable, write_enable) begin
+  always @( chip_select , read_flag, write_flag) begin
        
          if (~chip_select) begin
-           if(~read_enable & ~write_enable) begin 
-           	    read_flag <= 1'b1;
-                write_flag <=1'b1;
+           if(~read_flag & ~write_flag) begin 
+           	    read_enable <= 1'b1;
+                write_enable <=1'b1;
+             	count <= 2'b00;
            end
             // Check for read operation
-            else if ( ~ read_enable) begin
-                read_flag <= 1'b0;
+           else if ( ~ read_flag) begin
+                read_enable <= 1'b0;
+             	write_enable <=1'b1;
+             	count <= 2'b00;
             end
             // Check for write operation
-           else if (~ write_enable) begin
+           else if (~ write_flag) begin
+             read_enable <= 1'b1;
                 // Write operation happens after two bytes of low signal
-             if (count == 2'b10) begin
+             if (count == 2'b01) begin
+               		write_enable <= 1'b0;
+               		read_enable <=1'b1;
                     count <= 2'b00;
-                end else begin
+                end 
+             else begin
                     count <= count + 1;
+               		write_enable <= 1'b1;
+               		read_enable <=1'b1;
                 end
             end
-            else begin 
-                 // To avoid read and write operations hapenning simultaniously
-                read_flag <= 1'b1;
-                write_flag <=1'b1;
-            end
+            
+           else begin 
+           		read_enable <= 1'b1;
+                write_enable <=1'b1;
+           end
+        end
+    	else begin 
+                 // To avoid read and write operations hapenning at set CS
+                read_enable <= 1'b1;
+                write_enable <=1'b1;
+          		count <=2'b00;
         end
     end
-  
-  always@(count)begin
-    if(count ==2)
-       write_flag <= 1'b0;
-    else
-      write_flag <= 1'b1;
-  end
 
 endmodule
