@@ -19,7 +19,8 @@ module top(
     output wire second_ack,
     output wire AEOI, // controller + ISR 
     output wire single_or_cascade,
-    output wire Rotating_priority//1 for rotating and 0 for fully nested
+    output wire Rotating_priority,//1 for rotating and 0 for fully nested
+    output wire write_Enable
     );
 
 // Instantiate internal signals
@@ -39,7 +40,6 @@ module top(
     Read/Write + Control
 */
 wire read_Enable;
-wire write_Enable;
 wire [2:0]EOI_specific_IRQ_index;
 wire specific_eoi_flag;
 wire [1:0] reading_status;
