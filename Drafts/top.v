@@ -16,20 +16,22 @@ module top(
     input [7:0] interrupt_requests,
     output INT,
     output wire first_ack,
-    output wire second_ack
+    output wire second_ack,
+    output wire AEOI, // controller + ISR 
+    output wire single_or_cascade,
+    output wire Rotating_priority//1 for rotating and 0 for fully nested
     );
 
 // Instantiate internal signals
   // Interrupt requests from IRR
 
   wire [7:0]  IR_mask;    //Interrupt mask from OCW1
-  wire        Rotating_priority;  //1 for rotating and 0 for fully nested
       //the last serviced priority in ISR
 
    //Selected Priority given to cascade and ISR
   reg       INTFLAG;      //interrupt flag given to control
   wire edge_level_trigger; // controller + IRQ
-  wire AEOI; // controller + ISR 
+  
 
 
   wire INT_Flag;
@@ -39,7 +41,6 @@ module top(
 wire read_Enable;
 wire write_Enable;
 wire [2:0]EOI_specific_IRQ_index;
-wire single_or_cascade;
 wire specific_eoi_flag;
 wire [1:0] reading_status;
 wire [2:0] slave_id;
@@ -65,3 +66,4 @@ cascade cscd (.SP(slave_program),.SNGL(single_or_cascade),.slaveReg(slave_id),.p
 
 
 endmodule
+
