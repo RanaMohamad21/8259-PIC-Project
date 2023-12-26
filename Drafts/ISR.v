@@ -44,7 +44,7 @@ module ISR (
         // Normal EOI non-specific
         next_inService_reg[highest_priority_idx] <= 1'b0;
         next_serviced_idx <= highest_priority_idx;
-      end if (~AEOI && ack2) begin // remove ~
+      end if (AEOI && ack2) begin // remove ~
         // Automatic EOI
         next_inService_reg[highest_priority_idx] <= 1'b0;
         next_serviced_idx <= highest_priority_idx;
