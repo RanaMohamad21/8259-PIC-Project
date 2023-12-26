@@ -94,7 +94,7 @@ module Control_logic(
    end
    
  
-   wire ready_to_process_interrupts = (current_ICW_state == ALL_ICW_CONFIG_DONE)&&(INT_Flag==1'b1);
+   wire ready_to_process_interrupts = (current_ICW_state == ALL_ICW_CONFIG_DONE);
 
    
    reg [1:0]state_of_ctrl_logic =  CTRL_INITIAL_STATE;

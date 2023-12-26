@@ -54,30 +54,33 @@ module top_tb;
     
     #10 write_flag = 1'b0;
     #10 write_flag = 1'b1;
-
-     write_flag = 1'b0;
+    #10 write_flag = 1'b0;
      A0 =1'b0;
-    data_bus_container = 8'b00001010;
+    data_bus_container = 8'b00011010;
     #10 write_flag = 1'b1;
         chip_select = 1'b1;
         A0 = 1'b1;
     //ICW2
     #10 chip_select =1'b0;
         A0 = 1'b1;
-      
+    #10 write_flag = 1'b0;
+    #10 write_flag = 1'b1; 
     #10 write_flag = 1'b0;
         data_bus_container = 8'b11111000;
     #10 write_flag = 1'b1;
     //ICW3
     #10 chip_select =1'b0;
         A0 = 1'b1;
-     
+    #10 write_flag = 1'b0;
+    #10 write_flag = 1'b1; 
     #10 write_flag = 1'b0;
         data_bus_container = 8'b00000000;
     #10 write_flag = 1'b1;
     //ICW4
      #10 chip_select =1'b0;
         A0 = 1'b1;
+    #10 write_flag = 1'b0;
+    #10 write_flag = 1'b1;
     #10 write_flag = 1'b0;
         data_bus_container = 8'b00001111;
     #10 write_flag = 1'b1;
@@ -86,24 +89,32 @@ module top_tb;
        #10 chip_select =1'b0;
         A0 = 1'b0;
     #10 write_flag = 1'b0;
+    #10 write_flag = 1'b1;
+    #10 write_flag = 1'b0;
         data_bus_container = 8'b00000000;
     #10 write_flag = 1'b1;
-        interrupt_requests = 8'b00010000;
+    #10 interrupt_requests = 8'b00010000;
         #10 INTA =0;
         #10 INTA =1;
         #10 INTA = 0;
         #10 INTA = 1;
+        #10 read_flag = 1'b0;
+        #10 read_flag = 1'b1;
     
 #10 interrupt_requests = 8'b11010000;
         #10 INTA =0;
         #10 INTA =1;
         #10 INTA = 0;
         #10 INTA = 1;
+        #10 read_flag = 1'b0;
+        #10 read_flag = 1'b1;
 #10 interrupt_requests = 8'b00010110;
         #10 INTA =0;
         #10 INTA =1;
         #10 INTA = 0;
         #10 INTA = 1;
+        #10 read_flag = 1'b0;
+        #10 read_flag = 1'b1;
     
 
 
