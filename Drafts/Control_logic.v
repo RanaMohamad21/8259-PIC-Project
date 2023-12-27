@@ -20,7 +20,8 @@ module Control_logic(
   output reg send_ISR_to_data_bus,
   output reg [2:0]slave_id,
   input wire vecFlag,
-  input wire INT_Flag); //second ACK
+  input wire INT_Flag,
+  input wire sp); //second ACK
   parameter CONFIG_ICW1 = 3'b000;
   parameter CONFIG_ICW2 = 3'b001;
   parameter CONFIG_ICW3 = 3'b010;
@@ -303,7 +304,7 @@ begin
 
 
  if(ready_to_config_OCW3 ==1'b1 &&  WD==1'b0)
-    begin
+    begin     
         reading_status[1:0]=data_bus[1:0];
     end
 else
@@ -324,29 +325,32 @@ if (reading_status == 2'b10 && RD==1'b0)
 end
 
 
-always@(RD,vecFlag)
+always@(negedge RD)
 begin
-if(~ICW1_SNGL && ICW4_M_OR_S && ICW4_BUF && vecFlag )
+if((sp ==1'b0 && vecFlag ==1'b1))
 begin
-if(vecFlag==1'b1 && send_ISR_to_data_bus == 1'b1 && RD==1'b0)
-begin
-vector_address[2:0] = highest_priority_ISR;
-data_bus_container = vector_address;
-send_ISR_to_data_bus = 1'b0;
-end
-end
+if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
+  begin
+  vector_address[2:0] = highest_priority_ISR;
+   data_bus_container = vector_address;
+   send_ISR_to_data_bus = 1'b0;
+  end
+  end
+  else if(ICW1_SNGL ==1'b1 || sp ==1'b1)
+  begin
   if(send_ISR_to_data_bus == 1'b1 && RD==1'b0)
   begin
   vector_address[2:0] = highest_priority_ISR;
    data_bus_container = vector_address;
    send_ISR_to_data_bus = 1'b0;
   end
-  else
-  begin
   end
 
 
 end
+ 
+
+
 
 
 always@(state_of_ctrl_logic)
