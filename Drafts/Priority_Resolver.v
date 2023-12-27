@@ -10,10 +10,10 @@ module Priority_Resolver
   //declare useful variables
   wire [7:0] masked_IRQ;    // to to take into account interrupt mask that might come from control module
   assign masked_IRQ = IRQ_status & ~IR_mask;
-  reg [7:0] priority_reg;  // Register to store selected priority
-  reg [7:0] rotated_priority;            //Register to store rotated priority
-  reg [7:0] priority_mask;  // to take into account bits that are already set in ISR
-      always@* begin
+  reg [7:0] priority_reg = 8'b00000000;  // Register to store selected priority
+  reg [7:0] rotated_priority = 8'b00000000;            //Register to store rotated priority
+  reg [7:0] priority_mask = 8'b11111111;  // to take into account bits that are already set in ISR
+     always @* begin
         if      (IS_status[0] == 1'b1) priority_mask = 8'b00000000;
         else if (IS_status[1] == 1'b1) priority_mask = 8'b00000001;
         else if (IS_status[2] == 1'b1) priority_mask = 8'b00000011;
@@ -23,7 +23,7 @@ module Priority_Resolver
         else if (IS_status[6] == 1'b1) priority_mask = 8'b00111111;
         else if (IS_status[7] == 1'b1) priority_mask = 8'b01111111;
         else                           priority_mask = 8'b11111111;
-    end
+    end 
     
   always @* begin
     //Rotating Priority mode
@@ -110,4 +110,5 @@ module Priority_Resolver
       
   end
 endmodule
+
 
