@@ -21,15 +21,15 @@ module cascade
          cascReg= intrID;vecFlag=1'b0;
         end
       else begin
-        cascReg=3'b000;vecFlag=1'b0; end   
+        cascReg=3'bzzz;vecFlag=1'b0; end   
     else begin
-     cascReg=3'b000;vecFlag=1'b0;
+     cascReg=3'bzzz;vecFlag=1'b0;
        end 
   end
   always @(posedge pulse2 or negedge pulse1)
       if(SP)
         begin
-          cascReg=3'b000;
+          cascReg=3'bzzz;
           vecFlag=1'b0;
         end
       else
