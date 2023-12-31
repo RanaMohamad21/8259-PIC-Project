@@ -214,7 +214,7 @@ initial begin
     #10 write_flag = 1'b0;
     #10 write_flag = 1'b1;
     #10 write_flag = 1'b0;
-        data_bus_container = 8'b00000000;
+        data_bus_container = 8'b00000010;
     #10 write_flag = 1'b1;
 //OCW1
        #10 chip_select =1'b0;

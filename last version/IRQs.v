@@ -6,9 +6,9 @@ module IRQs (
   output reg [7:0] irq_status
 );
 
-  reg [7:0] edge_triggered_irqs; 
-  reg [7:0] level_triggered_irqs; 
-  always @(*) begin
+  reg [7:0] edge_triggered_irqs = 8'b00000000;
+  reg [7:0] level_triggered_irqs = 8'b00000000;
+  always @* begin
     if (trigger == 0) begin
       // Edge-Triggered IRQs
       if (irq_lines[0] && ~edge_triggered_irqs[0])
@@ -57,23 +57,24 @@ module IRQs (
     end
   end
 
-  always @(posedge inta or posedge irq_lines or posedge edge_triggered_irqs or posedge level_triggered_irqs) begin
+  always @* begin
     if (trigger == 0)
-      irq_status |= edge_triggered_irqs;
+      irq_status = edge_triggered_irqs;
     else
-      irq_status |= level_triggered_irqs;
-      if (inta) begin
-      // Acknowledge the IRQ
-      if (trigger == 0) begin
-        edge_triggered_irqs[highest_priority_idx] = 0;
-        irq_status [highest_priority_idx] = 0;
-      end
-      else begin
-        level_triggered_irqs [highest_priority_idx] = 0;
-        irq_status [highest_priority_idx] = 0;
-      end
-    end 
+      irq_status = level_triggered_irqs;
   end
 
-
+  always @(posedge inta) begin  // Assuming INTA signal 'inta'
+    if (inta) begin
+      // Acknowledge the IRQ
+      if (trigger == 0) begin
+        edge_triggered_irqs[highest_priority_idx] <= 0;
+        irq_status [highest_priority_idx] <= 0;
+      end
+      else begin
+        level_triggered_irqs [highest_priority_idx] <= 0;
+        irq_status [highest_priority_idx] <= 0;
+      end
+    end
+  end
 endmodule
