@@ -8,7 +8,7 @@ module IRQs (
 
   reg [7:0] edge_triggered_irqs; 
   reg [7:0] level_triggered_irqs; 
-  always @* begin
+  always @(*) begin
     if (trigger == 0) begin
       // Edge-Triggered IRQs
       if (irq_lines[0] && ~edge_triggered_irqs[0])
