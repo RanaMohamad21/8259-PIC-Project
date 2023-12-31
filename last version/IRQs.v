@@ -57,11 +57,11 @@ module IRQs (
     end
   end
 
-  always @* begin
+  always @(posedge inta or posedge irq_lines or posedge edge_triggered_irqs or posedge level_triggered_irqs) begin
     if (trigger == 0)
-      irq_status = edge_triggered_irqs;
+      irq_status |= edge_triggered_irqs;
     else
-      irq_status = level_triggered_irqs;
+      irq_status |= level_triggered_irqs;
       if (inta) begin
       // Acknowledge the IRQ
       if (trigger == 0) begin

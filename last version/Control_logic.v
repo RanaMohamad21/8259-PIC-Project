@@ -35,7 +35,7 @@ module Control_logic(
   parameter CTRL_INITIAL_STATE  = 2'b00;
   parameter FIRST_ACK  = 2'b01;
   parameter SECOND_ACK = 2'b10;
-  reg [7:0]data_bus_container = 8'b00000000;
+  reg [7:0]data_bus_container=8'bzzzzzzzz;
   reg ICW1_IC4; //1-> ICW4 needed 0-> not needed
   reg [7:0] vector_address; //vector address will be sent on the data bus
   reg [7:0] ICW2; //ICW2 register
@@ -47,22 +47,7 @@ module Control_logic(
  reg [7:0]ICW3;
  reg  cnt = 1'b0;
 
-  initial
-  begin
-    ICW1_LTIM <= 1'b0;
-    ICW1_SNGL <= 1'b1;
-    ICW1_IC4 <= 1'b0;
-    ICW4_M_OR_S <= 1'b1;
-    ICW4_AEOI <= 1'b0;
-    vector_address <= 8'b00000000;
-   ICW3 <= 8'b00000000;
-     ICW2 <= 8'b00000000;
-    reset_by_EOI <= 3'b000;
-   OCW1 <= 8'b00000000;
-    auto_rotate_status <= 1'b0;
-    begin_to_set_ISR <= 1'b0;
-    send_ISR_to_data_bus <= 1'b0;
-  end
+
 
    wire ready_to_config_ICW1;
    wire ready_to_config_ICW2;
@@ -112,19 +97,19 @@ module Control_logic(
 
    always@(negedge INTA)
    begin
-    
     if(cnt==1'b0)
     begin
       begin_to_set_ISR <= 1'b1;
       send_ISR_to_data_bus <= 1'b0;
       cnt <= 1'b1;
-      if( sp && ~ICW1_SNGL)
+if( sp && ~ICW1_SNGL)
 begin
 if( (ICW3>>$bits(highest_priority_ISR)) & 1)
 begin
 intr_id = highest_priority_ISR[2:0];
 end
 end
+    
     end
     else
     begin
@@ -133,55 +118,16 @@ end
     cnt = 1'b0;
     end
    end
+   always@(posedge INT_Flag)
+   begin
+    INT<= 1'b1;
+   end
+   always@(negedge INTA)
+   begin
+    INT <= 1'b0;
+   end
 
-/*always @(state_of_ctrl_logic)
-begin
-if(INTA==1'b1)
-begin
-begin_to_set_ISR = 1'b0;
-send_ISR_to_data_bus = 1'b0; 
-end
-else
-begin
-begin_to_set_ISR = (state_of_ctrl_logic==FIRST_ACK);
-send_ISR_to_data_bus = (state_of_ctrl_logic==SECOND_ACK); 
-end
-end*/
- //FSM for the ctrl logic.
-  /* always @(posedge INTA or negedge INTA)
-begin
-  if (ready_to_process_interrupts)
-  begin
-    case (state_of_ctrl_logic)
-      CTRL_INITIAL_STATE:
-      begin
-        
-        if (posedge_INTA == 1'b1) 
-          next_state_of_ctrl_logic <= FIRST_ACK;
-        else
-         next_state_of_ctrl_logic <= CTRL_INITIAL_STATE;
-      end
-      FIRST_ACK:
-      begin
 
-        if (posedge_INTA == 1'b1 )
-          next_state_of_ctrl_logic <= SECOND_ACK;
-        else
-        next_state_of_ctrl_logic <= FIRST_ACK;
-      end
-      SECOND_ACK:
-      begin
-        if (negedge_INTA == 1'b1)
-          next_state_of_ctrl_logic <= CTRL_INITIAL_STATE;
-      end
-      default:
-      begin
-        next_state_of_ctrl_logic <= CTRL_INITIAL_STATE;
-      end
-    endcase
-    
-  end
-end*/
    
    always@(*)
    begin
@@ -309,9 +255,9 @@ end
 /* determines which IS to be reset
 /* for specific EOI we take the ID we act upon from the OCW2 register
 * for non-specific EOI we reset the IS which has the highest priority and it will be known from the priority resolver*/
-always@(WD)
+always@(negedge WD)
 begin
-if(ready_to_config_OCW2 == 1'b1 && WD==1'b0)
+if(ready_to_config_OCW2 == 1'b1)
   begin
   case(data_bus[6:5])
   SPECIFIC_EOI:
@@ -323,7 +269,7 @@ if(ready_to_config_OCW2 == 1'b1 && WD==1'b0)
   NON_SPECIFIC_EOI:
   begin
      reset_by_EOI = highest_priority_ISR; //taken from the priority resolver
-     specific_eoi_status = 1'b1;
+     specific_eoi_status = 1'b0;
   end
      endcase
      end
@@ -347,29 +293,33 @@ end
 
 
 
-always@(WD)
+always@(negedge WD)
 begin
 
 
- if(ready_to_config_OCW3 ==1'b1 &&  WD==1'b0)
+ if(ready_to_config_OCW3 ==1'b1)
     begin     
-        reading_status[1:0]=data_bus[1:0];
+        reading_status[1:0] = data_bus[1:0];
     end
 else
     begin
      end  
 end
 
-always@(RD)
+always@(negedge RD)
 begin
-if (reading_status == 2'b10 && RD==1'b0)
+if (reading_status == 2'b10)
         begin
             data_bus_container = IRR;
         end 
-        else if (reading_status == 2'b11 && RD==1'b0)
+        else if (reading_status == 2'b11)
         begin
            data_bus_container = ISR;
         end
+end
+always@(posedge RD or negedge send_ISR_to_data_bus)
+begin
+  data_bus_container=8'bzzzzzzzz;
 end
 
 
@@ -384,18 +334,24 @@ begin
   end
 end
 
-always@(begin_to_set_ISR)
+
+always@(posedge send_ISR_to_data_bus)
 begin
 
-if(sp==1'b1)
+if(sp==1'b1   && ICW1_SNGL == 1'b0)
 begin
 if(ICW3>>highest_priority_ISR & 1==1'b0)
 begin
  vector_address[2:0] = highest_priority_ISR;
  data_bus_container = vector_address;
+end
+end
+else if(sp==1'b1   && ICW1_SNGL == 1'b1)
+begin
+ vector_address[2:0] = highest_priority_ISR;
+ data_bus_container = vector_address;
+end
 
-end
-end
 
 
 end
@@ -409,10 +365,7 @@ end
 
 assign data_bus = (WD==1'b1)?data_bus_container:(8'bzzzzzzzz);
 
-always@(*)
-begin
-INT<=INT_Flag;
-end
+
 
 
 
