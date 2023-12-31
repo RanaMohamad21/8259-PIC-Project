@@ -53,7 +53,7 @@ module cascade
       vecFlag=0;                   
   end
   
-  always@(posedge pulse1)
+  always@(negedge pulse1)
   begin
     if(!SNGL)
       if(!SP)

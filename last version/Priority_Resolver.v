@@ -25,7 +25,7 @@ module Priority_Resolver
         else                           priority_mask = 8'b11111111;
     end 
     
-  always @* begin
+  always @(IRQ_status) begin
     //Rotating Priority mode
     if (Rotating_priority == 1'b1) begin 
           // Priority rotation logic

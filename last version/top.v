@@ -5,7 +5,8 @@ inout[2:0] cascade_lines,
 inout [7:0]data_Bus,
 input wire read_flag, 
 input wire write_flag,
-output wire INT_Flag,input wire chip_select,
+output wire INT_Flag,
+input wire chip_select,
 input wire A0);
     
   
@@ -51,7 +52,7 @@ wire vecFlag;
 
 
 
-Control_logic control_logic(.WD(write_Enable),.RD(read_Enable),.A0(A0),.IRR(IRQ_status),.ISR(interrupt_inservice),.INTA(INTA),.ICW1_LTIM(edge_level_trigger),.ICW1_SNGL(single_or_cascade),.ICW4_AEOI(AEOI),.data_bus(data_Bus), .highest_priority_ISR(PriorityID),.reset_by_EOI(EOI_specific_IRQ_index),.OCW1(IR_mask),.reading_status(reading_status),.auto_rotate_status(Rotating_priority),.specific_eoi_status(specific_eoi_flag),.begin_to_set_ISR(first_ack),.send_ISR_to_data_bus(second_ack),.slave_id(slave_id),.vecFlag(vecFlag),.INT_Flag(INT_Flag),.sp(sp),.intr_id(intr_id));
+Control_logic control_logic(.WD(write_Enable),.RD(read_flag),.A0(A0),.IRR(IRQ_status),.ISR(interrupt_inservice),.INTA(INTA),.ICW1_LTIM(edge_level_trigger),.ICW1_SNGL(single_or_cascade),.ICW4_AEOI(AEOI),.data_bus(data_Bus), .highest_priority_ISR(PriorityID),.reset_by_EOI(EOI_specific_IRQ_index),.OCW1(IR_mask),.reading_status(reading_status),.auto_rotate_status(Rotating_priority),.specific_eoi_status(specific_eoi_flag),.begin_to_set_ISR(first_ack),.send_ISR_to_data_bus(second_ack),.slave_id(slave_id),.vecFlag(vecFlag),.INT_Flag(INT_Flag),.sp(sp),.intr_id(intr_id));
 
 
 ISR isr(.AEOI(AEOI),.interrupts_in_service(interrupt_inservice),.last_serviced_idx(last_serviced),.specific_irq(EOI_specific_IRQ_index),.ack1(first_ack),.ack2(second_ack),.SP(slave_program),.SNGL(single_or_cascade),.specific_eoi_flag(specific_eoi_flag),.highest_priority_idx(PriorityID));

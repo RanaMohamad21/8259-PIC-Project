@@ -23,7 +23,7 @@ module ISR (
   reg [7:0] next_inService_reg = 8'b00000000;
   reg [3:0] next_serviced_idx = 3'b000;
   
-  always @(posedge AEOI) begin
+  always @(*) begin
     if (AEOI) begin
       eoi_next_state <= ~eoi_current_state;
     end else begin
