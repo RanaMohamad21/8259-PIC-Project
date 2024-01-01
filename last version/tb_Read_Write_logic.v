@@ -1,5 +1,3 @@
-// Code your testbench here
-// or browse Examples
 module Read_Write_Logic_tb;
 
   wire read_enable_tb;
@@ -59,8 +57,7 @@ module Read_Write_Logic_tb;
     #10 read_flag_tb = 1'b0;
     #10;
     #10 read_flag_tb = 1'b1;
-    
-
+  
 
     //Write operation
     #10 chip_select_tb = 1'b1;
