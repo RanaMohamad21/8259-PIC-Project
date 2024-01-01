@@ -51,12 +51,12 @@ module Priority_Resolver_tb;
     last_serviced = 8'b110;
     #50  // Simulate for some time
     
-    // Add more test scenarios as needed
+    
 
     $stop; // Stop simulation
   end
 
-  // Add stimulus generation and result checking as needed
+ 
 
 endmodule
 
