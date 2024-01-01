@@ -6,6 +6,7 @@ module Read_Write_Logic(
     input write_flag
 );
 
+
     reg [1:0] count = 2'b00;
   initial begin
     read_enable =1;
