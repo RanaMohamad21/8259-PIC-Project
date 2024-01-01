@@ -14,17 +14,9 @@ input wire A0);
    wire [7:0]interrupt_inservice;
    wire [2:0]  last_serviced;
    wire [2:0] PriorityID;
-
-
-  reg [7:0] data_bus_container;
-  
-   
-
-
-   
- 
-    wire first_ack;
-    wire second_ack;
+   reg [7:0] data_bus_container;
+   wire first_ack;
+   wire second_ack;
 
 // Instantiate internal signals
   // Interrupt requests from IRR
