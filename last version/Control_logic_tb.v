@@ -67,30 +67,18 @@ module Control_logic_tb;
     IRR = 8'b0;
     ISR = 8'b0;
     INTA = 1'b1;
-    data_bus_container = 8'b0;
+    data_bus_container = 8'bzzzzzzzz;
     
      //ICW1
      #10 WD = 1'b0;
      
      A0 = 1'b0;
-     data_bus_container= 8'b00010101;
+     data_bus_container= 8'b00011011;
     //ICW2
     #10 WD = 1'b1;
-       
-        A0=1'b0;
-   #10 WD = 1'b0;
   
-    A0 =1'b1;
-      data_bus_container = 8'b11111000;
-     //ICW3
-    #10 WD = 1'b1;
- 
-    #10 WD = 1'b0;
- 
-      A0 =1'b1;
-     data_bus_container = 8'b11111111;
 //ICW4
-     #10 WD = 1'b1;
+  
     
      A0=1'b0;
     #10 WD = 1'b0;
@@ -109,14 +97,24 @@ module Control_logic_tb;
     
 //trying to send IRR
 
-     #10 IRR = 8'b01100000;
+     #10 IRR = 8'b11100000;
      #10 highest_priority_ISR =3'b111;
      #10 INTA = 0;
      #10 INTA = 1;
      #10 INTA = 0;
      #10 INTA = 1;
+     
+  //ocw3 reading IRR register
+   #10 WD = 1'b0;
+       A0 = 1'b0;
+       data_bus_container = 8'b00001010;
+  
    
+   #10 WD  =1'b1;
+        RD=1'b0;
+   #10 RD = 1'b1;
 
+ 
 
     #100 $stop; // Stop simulation after some time
   end

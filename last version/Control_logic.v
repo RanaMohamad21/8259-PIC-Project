@@ -323,7 +323,7 @@ end
 end
 else if(sp==1'b1   && ICW1_SNGL == 1'b1)
 begin
- vector_address[2:0] = highest_priority_ISR;
+ vector_address= highest_priority_ISR;
  data_bus_container = vector_address;
 end
 
