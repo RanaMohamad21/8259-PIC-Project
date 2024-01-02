@@ -32,10 +32,7 @@ module Control_logic(
   parameter NON_SPECIFIC_EOI = 2'b01;
   parameter ROTATE_IN_AEOI = 3'b100;
   parameter  DISABLE_ROTATE_IN_AEOI = 3'b000;
-  parameter CTRL_INITIAL_STATE  = 2'b00;
-  parameter FIRST_ACK  = 2'b01;
-  parameter SECOND_ACK = 2'b10;
-  reg [7:0]data_bus_container=8'bzzzzzzzz;
+   reg [7:0]data_bus_container=8'bzzzzzzzz;
   reg ICW1_IC4; //1-> ICW4 needed 0-> not needed
   reg [7:0] vector_address; //vector address will be sent on the data bus
   reg [7:0] ICW2; //ICW2 register
@@ -67,26 +64,11 @@ module Control_logic(
     assign ready_to_config_OCW3 = (current_ICW_state == ALL_ICW_CONFIG_DONE) && ~WD  && ~A0 && data_bus[3] && ~data_bus[4] && ~data_bus[7];
 
 
-  reg posedge_INTA;
-   reg negedge_INTA;
-  reg INTA_old=1;
-  //determining the status of INTA edges
-  always@(INTA)
-  begin
-    posedge_INTA <= ~INTA_old && INTA;
-    negedge_INTA <= INTA_old && ~INTA;
-   end
-   always@(*)
-   begin
-    INTA_old <=   INTA;
-   end
-   
- 
+  
    wire ready_to_process_interrupts = (current_ICW_state == ALL_ICW_CONFIG_DONE);
 
    
-   reg [1:0]state_of_ctrl_logic =  CTRL_INITIAL_STATE;
-   reg [1:0]next_state_of_ctrl_logic;
+   
 
    always@(posedge INTA)
    begin
@@ -129,13 +111,6 @@ end
 
 
    
-   always@(*)
-   begin
-   if(ready_to_process_interrupts)
-    begin
-      state_of_ctrl_logic <= next_state_of_ctrl_logic;  
-    end
-   end
 
    
    

@@ -11,12 +11,15 @@ module Control_logic_tb;
   reg[2:0] highest_priority_ISR;
   reg vecFlag;
   wire[7:0] data_bus;
-  wire INT, ICW1_LTIM, ICW1_SNGL, ICW4_AEOI, ICW4_uPM;
-  wire [7:0] vector_address, ICW3, ICW2, OCW1;
+  wire INT, ICW1_LTIM, ICW1_SNGL, ICW4_AEOI;
+  wire [7:0] vector_address, ICW2, OCW1;
   wire [2:0] reset_by_EOI,slave_id;
   wire  auto_rotate_status, begin_to_set_ISR, send_ISR_to_data_bus,specific_eoi_status;
   wire [1:0] reading_status;
   reg [7:0]data_bus_container;
+  reg sp;
+  wire [2:0]intr_id;
+  wire INT_Flag;
   // Instantiate the Control_logic module
   Control_logic uut (
     .WD(WD),
@@ -26,7 +29,6 @@ module Control_logic_tb;
     .IRR(IRR),
     .INTA(INTA),
     .INT(INT),
-    .ICW3(ICW3),
     .specific_eoi_status(specific_eoi_status),
     .ICW1_LTIM(ICW1_LTIM),
     .ICW1_SNGL(ICW1_SNGL),
@@ -40,7 +42,10 @@ module Control_logic_tb;
     .begin_to_set_ISR(begin_to_set_ISR),
     .send_ISR_to_data_bus(send_ISR_to_data_bus),
     .slave_id(slave_id),
-    .vecFlag(vecFlag)
+    .vecFlag(vecFlag),
+    .intr_id(intr_id),
+    .sp(sp),
+    .INT_Flag(INT_Flag)
   );
 
   // Clock generation
@@ -54,7 +59,7 @@ module Control_logic_tb;
   // Test stimulus
   initial begin
     
-   
+   sp = 1'b1;
     WD = 1'b1;
     RD = 1'b1;
    
@@ -91,11 +96,16 @@ module Control_logic_tb;
     #10 WD = 1'b0;
    
     A0 =1'b1;
-     data_bus_container = 8'b00011111;
+     data_bus_container = 8'b00000010;
      
      
  
      #10 WD = 1'b1;
+     //OCW1
+    #10 WD = 1'b0;
+        A0 = 1'b1;
+        data_bus_container  = 8'b00000000;
+        #10 WD = 1'b1;
     
 //trying to send IRR
 
@@ -104,27 +114,9 @@ module Control_logic_tb;
      #10 INTA = 0;
      #10 INTA = 1;
      #10 INTA = 0;
-         vecFlag =1;
      #10 INTA = 1;
-   //send isr address
-     #10 RD = 1'b0;
-    #10 RD = 1'b1;
-    //OCW1
-    #10 WD = 1'b0;
-        A0 = 1'b1;
-        data_bus_container  = 8'b10101010;
-        #10 WD = 1'b1;
-        //OCW2
-#10 WD = 1'b0;
-    A0 = 1'b0;
-    data_bus_container=8'b01100111;
-#10 WD =1'b1;
-     #10 WD=1'b0;
-     A0=1'b0;
-     data_bus_container = 8'b00001010;
-#10 WD =1'b1;
-#10 RD = 1'b0;
-#10 RD = 1'b1;
+   
+
 
     #100 $stop; // Stop simulation after some time
   end
